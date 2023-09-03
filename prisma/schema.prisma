@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,6 +7,174 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TournamentType {
+  C
+  R
+  P
+}
+
+enum Position {
+  GOL
+  ZAG
+  LD
+  LE
+  VOL
+  MC
+  MD
+  ME
+  MEI
+  PE
+  PD
+  SA
+  ATA
+}
+
+enum CardType {
+  Y
+  R
+}
+
+enum CardStep {
+  G
+  O
+  Q
+  S
+  F
+}
+
+enum ChampionshipPosition {
+  U
+  P
+  A1
+  A2
+  A3
+  B1
+  B2
+  B3
+  C1
+  C2
+  C3
+}
+
 model User {
-  id Int @id @default(autoincrement())
+  id                 Int         @id @default(autoincrement())
+  name               String
+  email              String      @unique
+  password           String
+  permission         String
+  documentIdentifier String      @unique
+  birthday           DateTime?
+  phone              String?
+  picture            String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  Workspace          Workspace[]
+}
+
+model Workspace {
+  id             Int            @id @default(autoincrement())
+  title          String
+  tournamentType TournamentType
+  pictureUrl     String?
+  ownerId        Int?
+  owner          User?          @relation(fields: [ownerId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Player {
+  id           Int       @id @default(autoincrement())
+  name         String
+  document     String
+  position     Position
+  playerNumber Int
+  birthday     DateTime?
+  picture      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Team         Team?     @relation(fields: [teamId], references: [id])
+  teamId       Int?
+}
+
+model Team {
+  id        Int         @id @default(autoincrement())
+  title     String
+  picture   String?
+  players   Player[]
+  coaches   Coach[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  CoachTeam CoachTeam[]
+}
+
+model Coach {
+  id        Int         @id @default(autoincrement())
+  name      String
+  document  String
+  picture   String?
+  teams     Team[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  CoachTeam CoachTeam[]
+}
+
+model CoachTeam {
+  coachId   Int
+  teamId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  coach Coach @relation(fields: [coachId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
+
+  @@id([coachId, teamId])
+}
+
+model Stadium {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  picture   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Referee {
+  id        Int      @id @default(autoincrement())
+  name      String
+  document  String
+  picture   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Award {
+  id           Int            @id @default(autoincrement())
+  title        String
+  picture      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Championship Championship[]
+}
+
+model Regulation {
+  id           Int            @id @default(autoincrement())
+  title        String
+  documentUrl  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Championship Championship[]
+}
+
+model Championship {
+  id           Int                  @id @default(autoincrement())
+  title        String
+  year         Int
+  position     ChampionshipPosition
+  awardId      Int?
+  regulationId Int?
+  award        Award?               @relation(fields: [awardId], references: [id])
+  regulation   Regulation?          @relation(fields: [regulationId], references: [id])
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
 }
