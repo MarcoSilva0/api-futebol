@@ -1,28 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { CreateUserDto } from './dtos/createUser.dto';
 import { hash } from 'bcrypt';
+import { PrismaService } from 'src/database/PrismaService';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const saltOrRounds = 10;
+  constructor(private prisma: PrismaService) {}
 
-    const passwordHash = await hash(createUserDto.password, saltOrRounds);
+  async createUser(
+    workspaceId: number,
+    createUserDto: CreateUserDto,
+  ): Promise<User> {
+    try {
+      const saltOrRounds = 10;
 
-    const user: User = {
-      ...createUserDto,
-      id: this.users.length + 1,
-      password: passwordHash,
-    };
+      const passwordHash = await hash(createUserDto.password, saltOrRounds);
 
-    this.users.push();
+      const userData: Prisma.UserCreateInput = {
+        ...createUserDto,
+        Workspace: {
+          connect: {
+            id: Number(workspaceId),
+          },
+        },
+        password: passwordHash,
+      };
 
-    return user;
+      const createdUser = await this.prisma.user.create({
+        data: userData,
+      });
+
+      return createdUser;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async findUserByEmail(email: string): Promise<User> {
+    try {
+      const users = this.prisma.user.findFirst({
+        where: {
+          email: email,
+        },
+      });
+      return users;
+    } catch (error) {
+      throw new NotFoundException(`Email: ${email} Not Found`);
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
-    return this.users;
+    try {
+      const users = this.prisma.user.findMany();
+      return users;
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

@@ -1,3 +1,5 @@
+import { Workspace } from '@prisma/client';
+
 export interface User {
   id: number;
   name: string;
@@ -6,4 +8,5 @@ export interface User {
   documentIdentifier: string;
   phone: string;
   picture: string;
+  Workspace?: Workspace;
 }
