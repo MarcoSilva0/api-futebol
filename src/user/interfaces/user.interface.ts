@@ -5,6 +5,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  permission: string;
   documentIdentifier: string;
   phone: string;
   picture: string;
